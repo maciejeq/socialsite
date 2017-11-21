@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'account',
     'django.contrib.admin',
+    'social.apps.django_app.default',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -120,8 +121,12 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 AUTHENTICATION_BACKENDS = (
+    'social.backends.facebook.Facebook2OAuth2',
 
     'django.contrib.auth.backends.ModelBackend',
     'account.authentication.EmailAuthBackend',
 
 )
+
+SOCIAL_AUTH_FACEBOOK_KEY = ''
+SOCIAL_AUTH_FACEBOOK_SECRET = ''
