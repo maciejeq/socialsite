@@ -5,9 +5,12 @@ from .forms import LoginForm, UserRegistrationForm, UserEditForm, ProfileEditFor
 from django.contrib.auth.decorators import login_required
 from .models import Profile
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from common.decorators import ajax_required
-from django.views.decorators.http import require_POST
+from actions.utils import create_action
+from actions.models import Action
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -40,6 +43,7 @@ def register(request):
             new_user.save()
             # Create the user profile
             profile = Profile.objects.create(user=new_user)
+            create_action(new_user, 'has created an account')
             return render(request,
                           'account/register_done.html',
                           {'new_user': new_user})
@@ -69,8 +73,16 @@ def edit(request):
 
 @login_required
 def dashboard(request):
-    return render(request, 'account/dashboard.html', {'section': 'dashboard'})
 
+    actions = Action.objects.all().exclude(user=request.user)
+    following_ids = request.user.following.values_list('id', flat=True)
+    if following_ids:
+
+        actions = actions.filter(user_id__in=following_ids).select_related('user', 'user__profile').prefetch_related('target')
+    actions = actions[:10]
+
+    return render(request, 'account/dashboard.html', {'section': 'dashboard',
+                                                      'actions': actions})
 @login_required
 def user_list(request):
     users = User.objects.filter(is_active=True)
